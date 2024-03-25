@@ -13,6 +13,7 @@ type SignerContextType = {
   signer?: JsonRpcSigner;
   address?: string;
   loading: boolean;
+  noMetaMask: boolean;
   connectWallet: () => Promise<void>;
 };
 
@@ -25,10 +26,17 @@ export const SignerProvider = ({ children }: { children: ReactNode }) => {
   const [address, setAddress] = useState<string>();
   const [loading, setLoading] = useState(false);
 
+  const [noMetaMask, setNoMetaMask] = useState(false);
+
   useEffect(() => {
-    const web3modal = new Web3Modal();
-    if (web3modal.cachedProvider) connectWallet();
-    window.ethereum.on("accountsChanged", connectWallet);
+    try {
+      const web3modal = new Web3Modal();
+      if (web3modal.cachedProvider) connectWallet();
+      window.ethereum.on("accountsChanged", connectWallet);
+    } catch (error) {
+      console.log(error);
+      setNoMetaMask(true);
+    }
   }, []);
 
   const connectWallet = async () => {
@@ -50,7 +58,7 @@ export const SignerProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   };
 
-  const contextValue = { signer, address, loading, connectWallet };
+  const contextValue = { signer, address, loading, noMetaMask, connectWallet };
 
   return (
     <SignerContext.Provider value={contextValue}>
